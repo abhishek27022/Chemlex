@@ -54,6 +54,11 @@ import streamlit as st
 # =============================================================================
 # PAGE CONFIG
 # =============================================================================
+def to_csv_bytes(df: pd.DataFrame) -> bytes:
+    """Convert a DataFrame to CSV bytes for Streamlit download buttons."""
+    if df is None:
+        df = pd.DataFrame()
+    return df.to_csv(index=False).encode("utf-8")
 st.set_page_config(
     page_title="Chemelex · Demand Forecast Cockpit",
     page_icon="📈",
