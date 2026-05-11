@@ -455,10 +455,38 @@ view = aggregate_current_view(filtered)
 total_forecast = view["forecast"].sum()
 total_actual = view["actual"].sum()
 overall_accuracy = business_accuracy(total_actual, total_forecast)
-overall_accuracy_value = float(overall_accuracy[0]) if len(overall_accuracy) else np.nan
+overall_accuracy_value = (
+    float(overall_accuracy.iloc[0])
+    if isinstance(overall_accuracy, pd.Series) and len(overall_accuracy) > 0
+    else float(overall_accuracy)
+    if pd.notna(overall_accuracy)
+    else np.nan
+)
 gap = total_actual - total_forecast
 at_risk = view[~view["accuracy_pct"].between(90, 110, inclusive="both")].shape[0]
+import numpy as np
+import pandas as pd
 
+def safe_float_value(value):
+    if value is None:
+        return np.nan
+
+    # If value is a pandas Series / numpy array / list
+    if isinstance(value, (pd.Series, np.ndarray, list, tuple)):
+        if len(value) == 0:
+            return np.nan
+        value = value[0]
+
+    # If value is already scalar
+    try:
+        if pd.isna(value):
+            return np.nan
+        return float(value)
+    except Exception:
+        return np.nan
+
+
+overall_accuracy_value = safe_float_value(overall_accuracy)
 k1, k2, k3, k4, k5 = st.columns(5)
 with k1: kpi_card("Active Line Items", f"{len(view):,}", f"Level: {selected_level}")
 with k2: kpi_card("Total Forecast", fmt_num(total_forecast), selected_target)
